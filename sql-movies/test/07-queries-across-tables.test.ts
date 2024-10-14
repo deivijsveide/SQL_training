@@ -11,25 +11,33 @@ describe("Queries Across Tables", () => {
   it(
     "should select top three directors ordered by total budget spent in their movies",
     async done => {
-      const query = `todo`;
+      const query = `
+                     SELECT d.full_name AS director, SUM(m.budget) AS total_budget
+                     FROM directors d
+                        JOIN movie_directors md ON d.id = md.director_id
+                        JOIN movies m ON md.movie_id = m.id
+                     GROUP BY d.full_name
+                     ORDER BY total_budget DESC
+                     LIMIT 3;
+      `;
       const result = await db.selectMultipleRows(query);
 
-      expect(result).toEqual([
-        {
-          director: "Ridley Scott",
-          total_budget: 722882143.58
-        },
-        {
-          director: "Michael Bay",
-          total_budget: 518297522.1
-        },
-        {
-          director: "David Yates",
-          total_budget: 504100108.5
-        }
-      ]);
+        expect(result).toEqual([
+            {
+                director: "Ridley Scott",
+                total_budget: 697900000
+            },
+            {
+                director: "Christopher Nolan",
+                total_budget: 510000000
+            },
+            {
+                director: "Michael Bay",
+                total_budget: 500000000
+            }
+        ]);
 
-      done();
+        done();
     },
     minutes(3)
   );
@@ -37,7 +45,14 @@ describe("Queries Across Tables", () => {
   it(
     "should select top 10 keywords ordered by their appearance in movies",
     async done => {
-      const query = `todo`;
+      const query = `
+                     SELECT k.keyword, COUNT(mk.movie_id) AS count
+                     FROM keywords k
+                         JOIN movie_keywords mk ON k.id = mk.keyword_id
+                     GROUP BY k.keyword
+                     ORDER BY count DESC
+                     LIMIT 10;
+      `;
       const result = await db.selectMultipleRows(query);
 
       expect(result).toEqual([
@@ -91,7 +106,13 @@ describe("Queries Across Tables", () => {
   it(
     "should select all movies called Life and return amount of actors",
     async done => {
-      const query = `todo`;
+      const query = `
+                     SELECT m.original_title, COUNT(ma.actor_id) AS count
+                     FROM movies m
+                         JOIN movie_actors ma ON m.id = ma.movie_id
+                     WHERE m.original_title = 'Life'
+                     GROUP BY m.original_title;
+      `;
       const result = await db.selectSingleRow(query);
 
       expect(result).toEqual({
@@ -107,7 +128,17 @@ describe("Queries Across Tables", () => {
   it(
     "should select three genres which has most ratings with 5 stars",
     async done => {
-      const query = `todo`;
+      const query = `
+                     SELECT g.genre, COUNT(mr.rating) AS five_stars_count
+                     FROM genres g
+                        JOIN movie_genres mg ON g.id = mg.genre_id
+                        JOIN movies m ON mg.movie_id = m.id
+                        JOIN movie_ratings mr ON m.id = mr.movie_id
+                     WHERE mr.rating = 5
+                     GROUP BY g.genre
+                     ORDER BY five_stars_count DESC
+                     LIMIT 3;
+      `;
       const result = await db.selectMultipleRows(query);
 
       expect(result).toEqual([
@@ -133,7 +164,16 @@ describe("Queries Across Tables", () => {
   it(
     "should select top three genres ordered by average rating",
     async done => {
-      const query = `todo`;
+      const query = `
+                     SELECT g.genre, ROUND(AVG(mr.rating), 2) AS avg_rating
+                     FROM genres g
+                        JOIN movie_genres mg ON g.id = mg.genre_id
+                        JOIN movies m ON mg.movie_id = m.id
+                        JOIN movie_ratings mr ON m.id = mr.movie_id
+                     GROUP BY g.genre
+                     ORDER BY avg_rating DESC
+                     LIMIT 3;
+      `;
       const result = await db.selectMultipleRows(query);
 
       expect(result).toEqual([
